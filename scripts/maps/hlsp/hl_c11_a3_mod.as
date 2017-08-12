@@ -1,74 +1,47 @@
 /*
 * This file replaces all map scripts for hl_c11_a3.
-* It's a combination of HLSP.as and hl_c11_a1.as
+* It's a combination of HLSP.as and hl_c11_a3.as
 * that also includes a rework of the tripmines to prevent trolling
 *  -w00tguy
 */
 
-#include "../Survival"
 #include "../point_checkpoint"
-#include "../hl_weapons/weapon_hlmp5"
-#include "../hl_weapons/weapon_hlshotgun"
 #include "../hlsp/trigger_suitcheck"
 #include "../HLSPClassicMode"
 
-Survival g_HLSPSurvival;
-
-array<ItemMapping@> g_ItemMappings = { ItemMapping( "weapon_9mmAR", GetHLMP5Name() ), ItemMapping( "weapon_shotgun", GetHLShotgunName() ), ItemMapping( "weapon_m16", GetHLMP5Name() ) };
-
-CConCommand m_ToggleClassicMode( "toggle_classic_mode", "Toggles Classic Mode", @ToggleCallback );
-
-void ToggleCallback( const CCommand@ pArgs )
-{
-	g_ClassicMode.Toggle();
-}
-
 void MapEnded( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue )
 {
- if( g_HLSPSurvival.IsEnabled )
- {
-  g_HLSPSurvival.EndRound();
-  return;
- }
- 
- g_EntityFuncs.FireTargets( "leveldead_loadsaved", pActivator, pCaller, USE_TOGGLE );
+	if ( g_SurvivalMode.IsEnabled() )
+	{
+		g_SurvivalMode.EndRound();
+	}
+	else
+	{
+		g_EntityFuncs.FireTargets( "leveldead_loadsaved", pActivator, pCaller, USE_TOGGLE );
+	}
 }
 
 void MapInit()
-{
+{	
 	RegisterPointCheckPointEntity();
-	
-	RegisterHLMP5();
-	RegisterHLShotgun();
-	
-	g_CustomEntityFuncs.RegisterCustomEntity( "trigger_suitcheck", "trigger_suitcheck" );
-	
-	//Uncomment this to test survival mode in single player mode
-	g_HLSPSurvival.MinPlayersRequired = 1;
-	g_HLSPSurvival.DelayBeforeStart = 30;
-	g_HLSPSurvival.DelayBeforeEnd = 10;
+	RegisterTriggerSuitcheckEntity();
 	
 	g_EngineFuncs.CVarSetFloat( "mp_hevsuit_voice", 1 );
 	
 	ClassicModeMapInit();
-	
-	g_ClassicMode.SetItemMappings( @g_ItemMappings );
-	
-	g_HLSPSurvival.MapInit();
-}
-
-void MapActivate()
-{
-	g_HLSPSurvival.MapActivate();
-	disableRestart();
-	findTripmines();
-	g_Scheduler.SetInterval("mineThink", 0.0);
 }
 
 
 // Everything below here is for fixing the tripmine level
 
-bool respawnMode = true;
+void MapActivate()
+{
+	disableRestart();
+	findTripmines();
+	g_Scheduler.SetInterval("mineThink", 0.0);
+}
+
+bool respawnMode = false;
 
 void print(string text) { g_Game.AlertMessage( at_console, text); }
 void println(string text) { print(text + "\n"); }
