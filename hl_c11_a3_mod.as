@@ -25,16 +25,18 @@ void MapInit()
 {	
 	RegisterPointCheckPointEntity();
 	RegisterTriggerSuitcheckEntity();
+ 
+   ClassicModeMapInit();
 	
 	g_EngineFuncs.CVarSetFloat( "mp_hevsuit_voice", 1 );
-	
-	ClassicModeMapInit();
+
+   g_Game.PrecacheModel( "models/v_tripmine.mdl" );
 }
 
 
 // Everything below here is for fixing the tripmine level
 
-void MapActivate()
+void MapStart()
 {
 	disableRestart();
 	findTripmines();
